@@ -12,10 +12,10 @@ scores_a = [[], [], []]
 scores_b = [[], [], []]
 
 for ind, file in enumerate(filenames_a):
-    scores_a[ind] = np.load(f'./results/{file}.npy')
+    scores_a[ind] = np.load(f'./results/main/{file}.npy')
 
 for ind, file in enumerate(filenames_b):
-    scores_b[ind] = np.load(f'./results/{file}.npy')
+    scores_b[ind] = np.load(f'./results/main/{file}.npy')
 
 
 B_CLF_NUM = len(clfs_b)
@@ -80,9 +80,40 @@ for dataset_index, dataset in enumerate(formatted_scores):
     ax[dataset_index].legend(labels=['5 clfs', '10 clfs', '15 clfs'])
     ax[dataset_index].set_ylabel('Quality (%)')
     ax[dataset_index].set_xlabel('GNB       CART       MLP')
+    ax[dataset_index].set_xticks([])
     ax[dataset_index].set_title(f'dataset no.{dataset_index+1}')
 
-# plt.ylim(0.4, 0.9)
-plt.show()
+plt.suptitle('Boosting: final results')
 
+# plt.ylim(0.4, 0.9)
+# plt.show()
+
+
+print(scores_a)
+formatted_scores = np.zeros((DATASETS_NUM, A_CLF_NUM, EXPERIMENTS_NUM))
+
+fig, ax = plt.subplots(1, DATASETS_NUM)
+
+for exp_index, exp_scores in enumerate(scores_a):
+    for dataset_index, dataset_scores in enumerate(exp_scores):
+        for clf_index, clf_score in enumerate(dataset_scores):
+            formatted_scores[dataset_index][clf_index][exp_index] = scores_a[exp_index][dataset_index][clf_index]
+
+
+
+for dataset_index, dataset in enumerate(formatted_scores):
+    dataset = dataset.T
+
+    ax[dataset_index].bar(np.arange(2), dataset[0], width=0.25)
+    ax[dataset_index].bar(np.arange(2) + 0.25, dataset[1], width=0.25)
+    ax[dataset_index].bar(np.arange(2) + 0.5, dataset[2], width=0.25)
+
+    ax[dataset_index].legend(labels=['5 clfs', '10 clfs', '15 clfs'])
+    ax[dataset_index].set_ylabel('Quality (%)')
+    ax[dataset_index].set_xlabel('GNB       CART')
+    ax[dataset_index].set_xticks([])
+    ax[dataset_index].set_title(f'dataset no.{dataset_index+1}')
+
+plt.suptitle('AdaBoost: final results')
+plt.show()
 

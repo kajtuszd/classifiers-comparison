@@ -6,32 +6,30 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import clone
-from scipy.stats import ttest_rel
+from scipy.stats import ttest_rel, rankdata
 from tabulate import tabulate
 
 
 files = [
     'balance-scale.csv',
-    # 'movement_libras.csv',
-    # 'texturaPatch.csv',
-    # 'contraceptive.csv',
-    # 'newthyroid.csv',
-    # 'texture.csv',
-    # 'page-blocks.csv',
+    'movement_libras.csv',
+    'texturaPatch.csv',
+    'contraceptive.csv',
+    'newthyroid.csv',
+    'texture.csv',
+    'page-blocks.csv',
     'vehicles.csv',
-    # 'digits.csv',
-    # 'pendigits.csv',
-    # 'vowel.csv', # chyba nie dziala
-    # 'id18-o-ring-erosion-or-blowby.csv', chyba tez
-    # 'satimage.csv',
-    # 'winequality-red.csv',
-    # 'id4-cars.csv',
-    # 'segment.csv',
-    # 'winequality-white.csv',
-    # 'led7digit.csv',
-    # 'shuttle.csv',
-    # 'letter.csv',
-    # 'tae.csv',
+    'digits.csv',
+    'pendigits.csv',
+    'satimage.csv',
+    'winequality-red.csv',
+    'id4-cars.csv',
+    'segment.csv',
+    'wq.csv',
+    'led7digit.csv',
+    'shuttle.csv',
+    'letter.csv',
+    'tae.csv',
     'zoo.csv',
 ]
 
@@ -42,6 +40,7 @@ def ensemble_tests(files, num_of_estimators, EnsembleClass, classifiers, result_
     t_statistic = np.zeros((len(classifiers), len(classifiers)))
     p_value = np.zeros((len(classifiers), len(classifiers)))
     means = np.zeros((len(files), len(classifiers)))
+    ranks = []
     pair_tests_sum = np.zeros((len(classifiers), len(classifiers)))
 
     kf = KFold(n_splits=n_folds, shuffle=True, random_state=1234)
@@ -91,12 +90,25 @@ def ensemble_tests(files, num_of_estimators, EnsembleClass, classifiers, result_
             (names_column, stat_better), axis=1), headers)
         pair_tests_sum += stat_better
         print("Statistically significantly better:\n", stat_better_table)
-    np.save(f'./results/{result_filename}', means)
-    np.save(f'./results_pair_stats/{result_filename}', pair_tests_sum)
+    for m in means:
+        ranks.append(rankdata(m).tolist())
+    ranks = np.array(ranks)
+    mean_ranks = np.mean(ranks, axis=0)
+    np.save(f'./results/mean_ranks/{result_filename}', mean_ranks)
+    np.save(f'./results/main/{result_filename}', means)
+    np.save(f'./results/pair_stats/{result_filename}', pair_tests_sum)
 
 
-filenames_b = {'bagging_5': 5, 'bagging_10': 10, 'bagging_15': 15}
-filenames_a = {'adaboost_5': 5, 'adaboost_10': 10, 'adaboost_15': 15}
+filenames_b = {
+    'bagging_5': 5,
+    'bagging_10': 10,
+    'bagging_15': 15
+}
+filenames_a = {
+    'adaboost_5': 5,
+    'adaboost_10': 10,
+    'adaboost_15': 15
+}
 
 bagging_clfs = {
     'GNB': GaussianNB(),
@@ -117,4 +129,5 @@ print(f"**********\nADABOOST\n**********")
 
 for file, num in filenames_a.items():
     ensemble_tests(files=files, num_of_estimators=num, EnsembleClass=AdaBoostClassifier, classifiers=adaboost_clfs, result_filename=file)
+
 

@@ -12,10 +12,10 @@ scores_a = [[], [], []]
 scores_b = [[], [], []]
 
 for ind, file in enumerate(filenames_a):
-    scores_a[ind] = np.load(f'./results_pair_stats/{file}.npy')
+    scores_a[ind] = np.load(f'./results/pair_stats/{file}.npy')
 
 for ind, file in enumerate(filenames_b):
-    scores_b[ind] = np.load(f'./results_pair_stats/{file}.npy')
+    scores_b[ind] = np.load(f'./results/pair_stats/{file}.npy')
 
 fig, ax = plt.subplots(len(clfs_b), len(clfs_b))
 
@@ -58,3 +58,4 @@ for i, score in enumerate(scores_a):
 
 fig.suptitle('AdaBoost: direct comparison in pair tests - summarized')
 plt.show()
+
