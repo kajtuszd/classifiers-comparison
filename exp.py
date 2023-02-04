@@ -8,7 +8,9 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import clone
 from scipy.stats import ttest_rel, rankdata
 from tabulate import tabulate
+from datetime import datetime
 
+start_time = datetime.now()
 
 files = [
     'balance-scale.csv',
@@ -23,6 +25,8 @@ files = [
     'pendigits.csv',
     'satimage.csv',
     'winequality-red.csv',
+    'id18-o-ring-erosion-or-blowby.csv',
+    'vowel.csv'
     'id4-cars.csv',
     'segment.csv',
     'wq.csv',
@@ -41,7 +45,7 @@ def ensemble_tests(files, num_of_estimators, EnsembleClass, classifiers, result_
     p_value = np.zeros((len(classifiers), len(classifiers)))
     means = np.zeros((len(files), len(classifiers)))
     ranks = []
-    pair_tests_sum = np.zeros((len(classifiers), len(classifiers)))
+    pair_tests = np.zeros((len(files), len(classifiers), len(classifiers)))
 
     kf = KFold(n_splits=n_folds, shuffle=True, random_state=1234)
     for file_ind, file in enumerate(files):
@@ -57,7 +61,7 @@ def ensemble_tests(files, num_of_estimators, EnsembleClass, classifiers, result_
 
             # ensemble learning
             for clf_index, (clf_name, clf) in enumerate(classifiers.items()):
-                e_clf = EnsembleClass(base_estimator=clone(clf),
+                e_clf = EnsembleClass(estimator=clone(clf),
                                          n_estimators=num_of_estimators,
                                          random_state=0).fit(X_train, y_train)
                 predict = e_clf.predict(X_test)
@@ -88,15 +92,16 @@ def ensemble_tests(files, num_of_estimators, EnsembleClass, classifiers, result_
         stat_better = significance * advantage
         stat_better_table = tabulate(np.concatenate(
             (names_column, stat_better), axis=1), headers)
-        pair_tests_sum += stat_better
+        pair_tests[file_ind] = stat_better
         print("Statistically significantly better:\n", stat_better_table)
     for m in means:
         ranks.append(rankdata(m).tolist())
     ranks = np.array(ranks)
     mean_ranks = np.mean(ranks, axis=0)
+    print(mean_ranks)
     np.save(f'./results/mean_ranks/{result_filename}', mean_ranks)
     np.save(f'./results/main/{result_filename}', means)
-    np.save(f'./results/pair_stats/{result_filename}', pair_tests_sum)
+    np.save(f'./results/pair_stats/{result_filename}', pair_tests)
 
 
 filenames_b = {
@@ -130,4 +135,5 @@ print(f"**********\nADABOOST\n**********")
 for file, num in filenames_a.items():
     ensemble_tests(files=files, num_of_estimators=num, EnsembleClass=AdaBoostClassifier, classifiers=adaboost_clfs, result_filename=file)
 
-
+end_time = datetime.now()
+print('Duration: {}'.format(end_time - start_time))
